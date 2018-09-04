@@ -1,0 +1,24 @@
+sudo: require
+servies:
+  - docker
+
+before_install:
+  - docker build -t testme -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run testme npm run test -- --coverage  
+
+after_success:
+  - docker build -t mkwanling/mcclient ./client 
+  - docker build -t mkwanling/mcnginx ./nginx
+  - docker build -t mkwanling/mcserver ./server  
+  - docker build -t mkwanling/mcworker ./worker 
+
+  # log in to the docker cli
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  # push images to docker hub
+  - docker push mkwanling/mcclient 
+  - docker push mkwanling/mcnginx 
+  - docker push mkwanling/mcserver 
+  - docker push mkwanling/mcworker
